@@ -1,0 +1,20 @@
+# Python specific
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+venv/
+.env
+.idea/
+.vscode/
+*.sqlite3
+*.db
+
+# Flask specific
+instance/
+.flaskenv
+.env
+
+# Jupyter Notebooks
+.ipynb_checkpoints
+
