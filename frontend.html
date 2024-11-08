@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sentiment Analysis</title>
+    <style>
+        /* General Page Styling */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+        .container {
+            text-align: center;
+            width: 80%;
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+        }
+
+        /* Form Styling */
+        form {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center; /* Align items horizontally */
+            gap: 10px; /* Space between elements */
+            flex-wrap: wrap; /* Allow wrapping for smaller screens */
+        }
+
+        input[type="text"], select, button {
+            padding: 10px; /* Padding for better spacing */
+            font-size: 16px; /* Font size for readability */
+            width: auto; /* Set width to auto to fit content */
+            min-width: 310px; /* Set a minimum width for the input */
+            max-width: 400px; /* Increased maximum width for the input */
+            border: 1px solid #ccc; /* Add a border */
+            border-radius: 4px; /* Rounded corners */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Slight shadow for depth */
+        }
+
+        input::placeholder {
+           text-align: center;
+        }
+        /* Reduce the select box width */
+        select {
+            min-width: 200px; /* Set a minimum width for the select box */
+            max-width: 220px; /* Set a maximum width for the select box */
+            text-align: center; /* Centre text selection */
+        }
+
+        /* Reduce the button width */
+        button {
+            min-width: 100px; /* Set minimum width for buttons */
+            max-width: 120px; /* Set maximum width for buttons */
+            cursor: pointer; /* Change cursor to pointer on hover */
+            background-color: #007bff; /* Button background color */
+            color: white; /* Button text color */
+            border: none; /* Remove border */
+            border-radius: 4px; /* Rounded corners */
+            transition: background-color 0.3s; /* Transition for hover effect */
+        }
+
+        button.analyze {
+            background-color: #0056b3; /* #4CAF50 = Green , #0056b3 = Darker blue on hover */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button.clear {
+            background-color: #f44336; /* Red */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button.analyze:hover {
+            background-color: #45a049; /* Darker green on hover */
+        }
+
+        button.clear:hover {
+            background-color: #d32f2f; /* Darker red on hover */
+        }
+
+
+        /* Summary Table Styling */
+        .summary-table {
+            width: auto; /* Set width to auto to fit content */
+            margin: 20px auto; /* Center the table and add margin */
+            text-align: left;
+            font-size: 16px;
+            border-collapse: collapse;
+            max-width: 400px; /* Set a maximum width for the summary table */
+        }
+        .summary-table th, .summary-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .summary-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Comments Table Styling */
+        .comments-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+        .comments-table th, .comments-table td {
+            padding: 8px;
+            border: 1px solid #ddd;
+        }
+        .comments-table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        /* Hide loading message initially */
+        .loading-message {
+            display: none; /* Hidden on page load */
+            font-weight: bold;
+            color: #007bff; /* Blue color for loading message */
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sentiment Analysis for YouTube Comments</h1>
+
+        <form id="analyzeForm">
+            <input type="text" id="input_value" placeholder="Enter YouTube Video URL / ID or Comment" required>
+            <select id="model_choice">
+                <option value="">--Select Model--</option>
+                <option value="logistic_regression">Logistic Regression</option>
+                <option value="xgboost">XGBoost</option>
+                <option value="random_forest">Random Forest</option>
+                <option value="support_vector_machine">Support Vector Machine</option>
+                <option value="multinomial_naive_bayes">Multinomial Naive Bayes</option>
+                <option value="lstm_deep_learning">Lstm Deep Learning</option>
+            </select>
+            <button type="submit" class="analyze">Analyze</button>
+            <button type="button" class="clear" id="clearButton">Clear</button>
+        </form>
+
+        <!-- Loading Message -->
+        <div class="loading-message" id="loadingMessage">Please wait. Running task...</div>
+
+        <!-- Results Display Area -->
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const analyzeForm = document.getElementById('analyzeForm');
+        const resultsDiv = document.getElementById('results');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const apiUrl = 'http://127.0.0.1:5000';
+
+        analyzeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const input_value = document.getElementById('input_value').value;
+            const model_choice = document.getElementById('model_choice').value;
+
+            // Show loading message immediately on form submission
+            loadingMessage.style.display = 'block';
+            resultsDiv.innerHTML = ''; // Clear previous results
+
+            try {
+                // Send initial request to get confirmation status
+                const response = await fetch(`${apiUrl}/analyze`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ input_value, model_choice })
+                });
+
+                const result = await response.json();
+
+                // Check if confirmation is required
+                if (result.confirmation_required) {
+                    const userConfirmed = confirm(result.error);
+                    if (userConfirmed) {
+                        // Retry request with default model after confirmation
+                        const response = await fetch(`${apiUrl}/analyze`, {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({ input_value, model_choice: 'use_default' })
+                        });
+                        const finalResult = await response.json();
+                        displayResults(finalResult);
+                    } else {
+                        alert("Please select a model to proceed.");
+                    }
+                } else {
+                    // No confirmation required; display results directly
+                    displayResults(result);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = 'Error: Could not connect to the server';
+            } finally {
+                // Hide loading message once processing is complete
+                loadingMessage.style.display = 'none';
+            }
+        };
+
+        document.getElementById('clearButton').onclick = () => {
+            document.getElementById('input_value').value = '';
+            document.getElementById('model_choice').value = '';
+            resultsDiv.innerHTML = '';
+            loadingMessage.style.display = 'none'; // Hide loading message on clear
+        };
+
+        function displayResults(data) {
+            loadingMessage.style.display = 'none'; // Ensure loading message is hidden before displaying results
+
+            if (data.error) {
+                resultsDiv.innerHTML = `<p>${data.error}</p>`;
+                return;
+            }
+
+            const summary = data.summary;
+            const comments = data.comments;
+            const sentiments = data.sentiments;
+
+            // Generate summary table
+            const summaryHtml = `
+                <table class="summary-table">
+                    <tr><td><strong>Positive Comments</strong></td><td>${summary.positive}</td></tr>
+                    <tr><td><strong>Negative Comments</strong></td><td>${summary.negative}</td></tr>
+                    <tr><td><strong>Total Comments</strong></td><td>${summary.num_comments}</td></tr>
+                    <tr><td><strong>Positive Rating</strong></td><td>${summary.rating.toFixed(2)}%</td></tr>
+                </table>`;
+
+            // Generate comments table
+            const commentsHtml = `
+                <table class="comments-table">
+                    <thead>
+                        <tr><th>Comment</th><th>Sentiment</th></tr>
+                    </thead>
+                    <tbody>
+                        ${comments.map((comment, i) => `
+                            <tr>
+                                <td>${comment}</td>
+                                <td>${sentiments[i]}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>`;
+
+            // Display both tables
+            resultsDiv.innerHTML = summaryHtml + commentsHtml;
+        }
+    </script>
+
+</body>
+</html>
