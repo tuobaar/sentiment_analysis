@@ -5,7 +5,8 @@ import re
 import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from flask import Flask, request, jsonify
+from flask import Flask, request, render_template, jsonify
+
 from flask_cors import CORS
 
 app = Flask(__name__)
@@ -100,6 +101,11 @@ def get_youtube_comments(video_url, api_key):
 
 
 @app.route('/')
+def index():
+    return render_template('frontend.html')
+
+
+@app.route('/api')
 def home():
     return jsonify(message="Welcome to the Sentiment Analysis API!")
 
