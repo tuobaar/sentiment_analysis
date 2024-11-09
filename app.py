@@ -99,6 +99,11 @@ def get_youtube_comments(video_url, api_key):
     return comments
 
 
+@app.route('/')
+def home():
+    return jsonify(message="Welcome to the Sentiment Analysis API!")
+
+
 @app.route('/analyze', methods=['POST'])
 def analyze():
     input_value = request.json.get('input_value')
