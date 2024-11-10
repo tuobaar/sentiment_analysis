@@ -39,6 +39,7 @@ model_dict = {
     'multinomial_naive_bayes': joblib.load('models/multinomial_naive_bayes_model.pkl')
 }
 
+
 # Load LSTM model and tokenizer only once if memory allows
 # lstm_model = load_model('models/lstm_deep_learning_model.h5')
 # lstm_tokenizer = joblib.load('models/lstm_deep_learning_tokenizer.pkl')
@@ -219,4 +220,4 @@ def analyze():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=PORT, debug=False)  # Set debug as True or False as needed.
