@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- Ensures responsive scaling on mobile -->
     <title>Sentiment Analysis</title>
     <style>
         /* General Page Styling */
@@ -10,13 +11,14 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh; /* Minimum height for full screen on mobile */
             margin: 0;
             background-color: #f9f9f9;
+            color: #333; /* Default text color */
         }
         .container {
             text-align: center;
-            width: 80%;
+            width: 90%; /* Use a wider width for mobile responsiveness */
             max-width: 800px;
             margin: auto;
             padding: 20px;
@@ -24,23 +26,49 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
         }
+
+        /* Dark Mode Styling */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #121212; /* Dark mode background */
+                color: #ffffff; /* Light text for dark mode */
+            }
+            .container {
+                background-color: #333333; /* Dark container background */
+                color: #ffffff; /* Ensure text inside container is light */
+            }
+            input[type="text"], select, button {
+                background-color: #555555; /* #444444 Darker background for inputs in dark mode */
+                color: #ffffff;
+                border: 1px solid #555555;
+            }
+            button {
+                background-color: #555555; /* #0056b3 Maintain button color in dark mode */
+            }
+            .summary-table th, .comments-table th {
+                background-color: #444444; /* Dark table header background */
+                color: #444444; /* Change to (#ffffff) white text for contrast later if needed */
+            }
+        }
+
         h1 {
-            font-size: 24px;
-            color: #333;
+            font-size: 1.5rem; /* Smaller font size for mobile */
+            color: inherit; /* Inherit color for dark mode compatibility */
         }
 
         /* Form Styling */
         form {
             margin: 20px 0;
             display: flex;
-            justify-content: center; /* Align items horizontally */
-            gap: 10px; /* Space between elements */
+            justify-content: center; /* Center form elements */
+            gap: 15px; /* Space between form elements */
             flex-wrap: wrap; /* Allow wrapping for smaller screens */
         }
 
         input[type="text"], select, button {
+            text-align: center; /* Center user input when being entered */
             padding: 10px; /* Padding for better spacing */
-            font-size: 16px; /* Font size for readability */
+            font-size: 1rem; /* Use relative font size */
             width: auto; /* Set width to auto to fit content */
             min-width: 310px; /* Set a minimum width for the input */
             max-width: 400px; /* Increased maximum width for the input */
@@ -50,8 +78,9 @@
         }
 
         input::placeholder {
-           text-align: center;
+            text-align: center;
         }
+
         /* Reduce the select box width */
         select {
             min-width: 200px; /* Set a minimum width for the select box */
@@ -59,6 +88,7 @@
             text-align: center; /* Centre text selection */
         }
 
+        /* Button Styling */
         /* Reduce the button width */
         button {
             min-width: 100px; /* Set minimum width for buttons */
@@ -97,6 +127,23 @@
             background-color: #d32f2f; /* Darker red on hover */
         }
 
+        /* Add a :focus state to buttons for accessibility.  */
+        button:focus {
+            outline: none; /* Removes default outline */
+            box-shadow: 0 0 5px #007bff; /* Add a blue shadow on focus */
+        }
+
+        /* Default (desktop view) */
+        .summary-table, .comments-table {
+            width: auto; /* Fit content */
+        }
+
+        /* Mobile view */
+        @media (max-width: 768px) {
+            .summary-table, .comments-table {
+                width: 100%; /* Full width on smaller screens */
+            }
+        }
 
         /* Summary Table Styling */
         .summary-table {
@@ -118,10 +165,10 @@
 
         /* Comments Table Styling */
         .comments-table {
-            width: 100%;
+            width: 100%; /* Full width for mobile */
             margin-top: 20px;
             border-collapse: collapse;
-            font-size: 16px;
+            font-size: 1rem;
         }
         .comments-table th, .comments-table td {
             padding: 8px;
@@ -132,6 +179,7 @@
             font-weight: bold;
         }
 
+        /* Loading message hidden by default */
         /* Hide loading message initially */
         .loading-message {
             display: none; /* Hidden on page load */
@@ -145,6 +193,7 @@
     <div class="container">
         <h1>Sentiment Analysis for YouTube Comments</h1>
 
+        <!-- Form for inputting data and selecting a model -->
         <form id="analyzeForm">
             <input type="text" id="input_value" placeholder="Enter YouTube Video URL / ID or Comment" required>
             <select id="model_choice">
@@ -154,7 +203,7 @@
                 <option value="random_forest">Random Forest</option>
                 <option value="support_vector_machine">Support Vector Machine</option>
                 <option value="multinomial_naive_bayes">Multinomial Naive Bayes</option>
-                <option value="lstm_deep_learning">Lstm Deep Learning</option>
+                <option value="lstm_deep_learning">LSTM Deep Learning</option>
             </select>
             <button type="submit" class="analyze">Analyze</button>
             <button type="button" class="clear" id="clearButton">Clear</button>
@@ -171,7 +220,7 @@
         const analyzeForm = document.getElementById('analyzeForm');
         const resultsDiv = document.getElementById('results');
         const loadingMessage = document.getElementById('loadingMessage');
-<!--        const apiUrl = 'http://127.0.0.1:5000';-->
+        <!--        const apiUrl = 'http://127.0.0.1:5000';-->
         const apiUrl = 'https://sentiment-analysis-4nt1.onrender.com/';
 
         analyzeForm.onsubmit = async (e) => {
@@ -179,12 +228,12 @@
             const input_value = document.getElementById('input_value').value;
             const model_choice = document.getElementById('model_choice').value;
 
-            // Show loading message immediately on form submission
+            // Show loading message on form submission
             loadingMessage.style.display = 'block';
             resultsDiv.innerHTML = ''; // Clear previous results
 
             try {
-                // Send initial request to get confirmation status
+                // Initial request to check if confirmation is required
                 const response = await fetch(`${apiUrl}/analyze`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
@@ -193,43 +242,44 @@
 
                 const result = await response.json();
 
-                // Check if confirmation is required
+                // Check if confirmation is needed based on API response
                 if (result.confirmation_required) {
                     const userConfirmed = confirm(result.error);
                     if (userConfirmed) {
-                        // Retry request with default model after confirmation
-                        const response = await fetch(`${apiUrl}/analyze`, {
+                        // Retry with default model if user confirms
+                        const retryResponse = await fetch(`${apiUrl}/analyze`, {
                             method: 'POST',
                             headers: {'Content-Type': 'application/json'},
                             body: JSON.stringify({ input_value, model_choice: 'use_default' })
                         });
-                        const finalResult = await response.json();
+                        const finalResult = await retryResponse.json();
                         displayResults(finalResult);
                     } else {
                         alert("Please select a model to proceed.");
                     }
                 } else {
-                    // No confirmation required; display results directly
+                    // Display results if no confirmation is required
                     displayResults(result);
                 }
             } catch (error) {
                 console.error('Error:', error);
                 resultsDiv.innerHTML = 'Error: Could not connect to the server';
             } finally {
-                // Hide loading message once processing is complete
+                // Hide loading message when processing is complete
                 loadingMessage.style.display = 'none';
             }
         };
 
         document.getElementById('clearButton').onclick = () => {
+            // Clear form input, model selection, and result display on button click
             document.getElementById('input_value').value = '';
             document.getElementById('model_choice').value = '';
             resultsDiv.innerHTML = '';
-            loadingMessage.style.display = 'none'; // Hide loading message on clear
+            loadingMessage.style.display = 'none';
         };
 
         function displayResults(data) {
-            loadingMessage.style.display = 'none'; // Ensure loading message is hidden before displaying results
+            loadingMessage.style.display = 'none'; // Hide loading message before displaying results
 
             if (data.error) {
                 resultsDiv.innerHTML = `<p>${data.error}</p>`;
@@ -269,6 +319,5 @@
             resultsDiv.innerHTML = summaryHtml + commentsHtml;
         }
     </script>
-
 </body>
 </html>
