@@ -40,8 +40,8 @@ model_dict = {
 }
 
 # Load LSTM model and tokenizer only once if memory allows
-lstm_model = load_model('models/lstm_deep_learning_model.h5')
-lstm_tokenizer = joblib.load('models/lstm_deep_learning_tokenizer.pkl')
+# lstm_model = load_model('models/lstm_deep_learning_model.h5')
+# lstm_tokenizer = joblib.load('models/lstm_deep_learning_tokenizer.pkl')
 
 
 def clean_text(text):
@@ -174,7 +174,11 @@ def analyze():
 
     try:
         if model_choice == 'lstm_deep_learning':
-            # Use preloaded LSTM model and tokenizer
+            # Use preloaded LSTM model and tokenizer !! Not possible having memory quota at render.com
+
+            lstm_model = load_model('models/lstm_deep_learning_model.h5')
+            lstm_tokenizer = joblib.load('models/lstm_deep_learning_tokenizer.pkl')
+
             max_sequence_length = 100
             cleaned_comments = [clean_text(comment) for comment in comments]
             sequences = lstm_tokenizer.texts_to_sequences(cleaned_comments)
