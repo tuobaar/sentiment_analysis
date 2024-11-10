@@ -158,13 +158,18 @@ def home():
 @app.route('/analyze', methods=['POST'])
 def analyze():
     input_value = request.json.get('input_value')
-    model_choice = request.json.get('model_choice') or 'xgboost'
+    model_choice = request.json.get('model_choice')
 
+    # Prompt the user to confirm using the default model if none is selected
     if not model_choice:
         return jsonify({
-            'error': 'No model selected. Would you like to analyze with a default model (XGBoost)?',
+            'error': 'No model selected. Would you like to analyze with the default model (XGBoost)?',
             'confirmation_required': True
         })
+
+    # If the user confirms, use 'xgboost' as the default model
+    if model_choice == 'use_default':
+        model_choice = 'xgboost'
 
     if re.match(r'^(https?://)?(www\.)?(youtube\.com|youtu\.?be)/.+$', input_value):
         comments = get_youtube_comments(input_value, YOUTUBE_API_KEY)
@@ -220,4 +225,4 @@ def analyze():
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", port=PORT, debug=False)  # Set debug as True or False as needed.
+    app.run(host="0.0.0.0", port=PORT, debug=False)  # Set debug as True or False as needed. Production env: debug=True
