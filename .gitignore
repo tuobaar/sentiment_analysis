@@ -176,6 +176,9 @@ cython_debug/
 
 # macOS cached files
 .DS_Store
+models/.DS_Store
+*.DS_Store
+
 
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
