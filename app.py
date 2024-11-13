@@ -34,7 +34,7 @@ PORT = int(os.environ.get("PORT", 5000))
 model_dict = {
     'logistic_regression': joblib.load('models/logistic_regression_model.pkl'),
     'xgboost': joblib.load('models/xgboost_model.pkl'),
-    # 'random_forest': joblib.load('models/random_forest_model.pkl'),
+    'random_forest': joblib.load('models/random_forest_model.pkl'),
     'support_vector_machine': joblib.load('models/support_vector_machine_model.pkl'),
     'multinomial_naive_bayes': joblib.load('models/multinomial_naive_bayes_model.pkl')
 }
